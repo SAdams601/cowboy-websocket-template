@@ -1,0 +1,311 @@
+<html>
+  <head>
+    <meta charset="UTF8">  
+    <title>Erlang Online Visualisation</title>
+    <script type="text/javascript">
+      var originalHeight = 620;
+      var originalWidth = 1000;
+      
+      //drawing related constants
+      var cx = 500;
+      var originalcx = cx;
+      var cy = 315;
+      var originalcy = cy;
+      var rx = 150;
+      var ry = 150;
+      var boxSize = 30;
+
+      var high = true;
+    
+    </script>
+    <!-- <script src="/static/jquery.min.js"></script> -->
+    <!-- <script src="static/lib/d3.js"></script>-->
+    <script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
+    <script type="text/javascript" src="static/lib/underscore-min.js"></script>
+    <script type="text/javascript" src="static/lib/jquery-1.8.3.js"></script>
+    <script type="text/javascript" src="static/lib/jquery-ui.js"></script>
+    <script type="text/javascript" src="static/lib/detect-zoom-master/detect-zoom.js"></script>
+    <link rel="stylesheet" type="text/css" href="static/shared.css">
+    <!--<script type="text/javascript" src="slider.js"></script> -->
+
+    <!-- LOW -->
+    <script type="text/javascript" src="static/low/zoom.js"></script>
+    <link rel="stylesheet" type="text/css" href="static/low/style.css">
+
+    <!-- HIGH -->
+    <script type="text/javascript" src="static/high/util.js"></script>
+    <script type="text/javascript" src="static/high/drawing.js"></script>
+    <script type="text/javascript" src="static/high/force.js"></script>
+    <script type="text/javascript" src="static/high/regions.js"></script>
+    <script type="text/javascript" src="static/high/zones.js"></script>
+    <link rel="stylesheet" type="text/css" href="static/high/style.css">
+
+    <script type="text/javascript">
+      
+      var websocket;
+      var profile_on=0;
+      $(document).ready(init);
+      
+      function init() {
+          if(!("WebSocket" in window)){  
+              $('#status').append('<p><span style="color: red;">websockets are not supported </span></p>');
+              $("#navigation").hide();  
+          } else {
+              $('#status').append('<p><span style="color: green;">websockets are supported </span></p>');
+             connect();
+      };
+              $("#connected").hide(); 	
+              $("#content").hide(); 	
+      };
+
+      function connect()
+      {
+          wsHost = 'ws://localhost:8080/websocket';
+          websocket = new WebSocket(wsHost);
+          
+          websocket.onopen = function(evt) { onOpen(evt) }; 
+          websocket.onclose = function(evt) { onClose(evt) }; 
+          websocket.onmessage = function(evt) { onMessage(evt) }; 
+          websocket.onerror = function(evt) { onError(evt) };
+      showScreen('<span style="color: orange;">Ready ...</span>'); 
+      };  
+      
+      function disconnect() {
+          websocket.send("stop")
+          websocket.close();
+      }; 
+
+      
+      function toggle_connection(input){
+          if (profile_on==1) {
+                  profile_on=0;
+                  wipe_graphs();
+                  disconnect();
+                  return;
+          }
+          if(websocket.readyState == websocket.OPEN){
+             start_profile(input);
+             console.log("before display check", high);
+             profile_on=1;
+          } else {
+            connect();
+            start_profile(input);
+            profile_on=1
+          }
+          if (high) {
+            $("#highLevel").show();
+          } else {
+            $("#lowLevel").show();
+          }
+          showScreen('<span style="color: green;">Running ...</span>');
+      };
+      
+   function wipe_graphs() {
+      console.log("Wiping graphs");
+      if (high) {
+         $("#highLevel").hide();
+         $("#highLevel").html('');
+         profilingStopped();
+      } else {
+         $("#lowLevel").hide();
+      }
+   };
+
+      function findFeatureSelection(feature){
+          var test = document.getElementsByName(feature);
+          var sizes = test.length;
+          for (i=0; i < sizes; i++) {
+		var temp = test[i];
+                  if (temp.checked==true) {
+                    high = temp.value === "full_high_level"; 
+                    return temp.value;
+                  };
+              };
+          };    
+        
+      function findNodeSelection()
+       {
+          var fld = document.getElementById('nodeList');
+          var sizes = fld.options.length;
+          var nodes = "";
+          for (i = 0; i < sizes; i++){
+            if (fld.options[i].selected){
+              nodes = nodes + fld.options[i].value + ";";
+          };
+          };
+       return nodes;
+       };
+       
+       function removeNodeFromList(newnode)
+         {
+          var fld = document.getElementById('nodeList');
+          var values =[];
+          var length=fld.options.length;
+          for (var i = length-1; i >=0; i--) {
+             console.log("i:", i);
+             console.log("length:", length);
+             console.log("options:", fld.options[i].selected);
+             if (fld.options[i].selected) {
+               fld.remove(i);
+             }
+           }
+          };
+
+         function addNodeToList(newnode)
+         {
+          var x=document.getElementById("nodeList");
+          var option=document.createElement("option");
+          option.text=newnode.value;
+          option.value=newnode.value;
+          var sizes = x.length;
+          var nodes = "";
+          for (i = 0; i < sizes; i++){
+          if (x[i].value==newnode.value){
+             nodes = nodes + x[i].value + ";";
+          };
+          };
+          if ((nodes=="") && (newnode.value!="")){
+              try
+                          {
+                          // for IE earlier than version 8
+                          x.add(option,x.options[null]);
+                          }
+                          catch (e)
+                          {
+                          x.add(option,null);
+                          }
+                          
+                         }};
+        
+        function generateNodeNames(basename, startindex, endindex, domain)
+         {
+          var x=document.getElementById("nodeList");
+          var nodename=document.createElement("nodename");
+          console.log("basename", basename.value);
+          console.log("startindex", startindex.value);
+          console.log("endindex", endindex.value);
+          console.log("domain", domain.value);
+          for (j=startindex.value; j<=endindex.value; j++){
+              nodename.text = "nodename";
+              nodename.value=basename.value+j+domain.value;
+              console.log("nodename:", nodename.value);
+              addNodeToList(nodename);
+             }
+         };
+
+
+      function selectAll(selectBox,selectAll) { 
+    // have we been passed an ID 
+       if (typeof selectBox == "string") { 
+        selectBox = document.getElementById(selectBox);
+      } 
+    // is the select box a multiple select box? 
+      if (selectBox.type == "select-multiple") { 
+        for (var i = 0; i < selectBox.options.length; i++) { 
+             selectBox.options[i].selected = true; 
+        } 
+       }
+      }
+
+
+
+      function start_profile(input)
+      {
+         var featureS =  findFeatureSelection("feature");
+         var nodeS = findNodeSelection();
+         var txt = 'start_profile:'+featureS+':'+ nodeS;
+         if (nodeS=="")
+            {
+            showScreen('<span style="color: red;">No node has been selected!</span>');
+            disconnect();
+            }
+         else {
+          setTimeout(function(){websocket.send(txt)}, 1000);
+          }
+      };
+
+      function onOpen(evt) { 
+          $("#connected").fadeIn('slow');
+          $("#content").fadeIn('slow');
+      };  
+
+      function onClose(evt) { 
+          showScreen('<span style="color: red;">Profiling stopped... </span>');
+      };  
+
+      function onMessage(evt) { 
+       if (high){
+		 parseInput(evt.data);
+       } else {
+         parse(evt.data);
+       }
+         
+      };  
+
+      function showScreen(txt) { 
+          $('#connection_status').html('<p>' + txt + '</p>');
+      };
+
+      function clearScreen() 
+      { 
+          $('#output').html("");
+      };
+    </script>
+  </head>
+
+  <body>
+    <div id="header">
+      <h1 align=middle  style="color: blue;">Erlang Online Visualisation</h1>
+      <div id="status"></div>
+    </div>
+
+    
+    <div id="visualisation">
+      <form name="input">
+        <p> Please select the feature you would like to visualise:<p>
+          <input type="radio" name="feature" value="rq_migration" CHECKED>Low level visualisation<br>
+	  <input type="radio" name="feature" value="full_high_level">High level visualisation<br>
+        <p> Please select the node(s) you would like to monitor:<p>
+          <select id="nodeList"  size=5 style="width: 150px;" multiple>
+          </select>
+          <button type="button" onclick="removeNodeFromList()">Remove Selected Nodes</button> 
+          <input type='text' id="newnode" value="node1@127.0.0.1">
+          <button type="button" onclick="addNodeToList(newnode)">Add Node</button> <br>
+          <input type="button" name="Button" value="Select All" onclick="selectAll('nodeList',true)"/>
+          <br><br>
+          <button type="button" onclick = "generateNodeNames(basename, startindex, endindex, domain)">
+            Generate Node Names</button>
+          Basename: <input type='text' id="basename" size=6 value="node">
+          Start index: <input type='text' id="startindex" value="1" size=2>
+          End index: <input type='text' id="endindex" value="1" size=2>
+          Domain: <input type='text' id="domain" value="@127.0.0.1" size=10> <br><br>
+          <button type="button" onclick="toggle_connection(this.form)">Start/Stop Visualization</button>
+      </form>
+    </div>
+    <div id="content">						
+      <div id="output"></div>
+      <div id="connection_status"></div>
+    </div>
+
+  <div id="lowLevel">
+      <script type="text/javascript" src="static/low/body.js"></script>
+    <div class="block">
+      <div id="svgdiv" class="left">
+        <span id="loading">Loading...</span>
+      </div>
+      <div class="right">
+        <form id="options">
+          <div>
+            <span>View size on screen:&nbsp;</span><input type="checkbox" id="usage" /><br />
+            <!--<input type="button" id="pause" value="Pause" onclick="pauseAnimation()" /><br /> -->
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="highLevel">
+
+  </div>
+  </body>
+</html> 

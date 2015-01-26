@@ -14,3 +14,9 @@ html {
 .startingRect {
 	display: none; 
 }
+
+div.scroll{
+    width: 1000px;
+    height: 620px;
+    overflow: scroll;
+}

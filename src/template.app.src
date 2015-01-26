@@ -1,7 +1,7 @@
 %% Feel free to use, reuse and abuse the code in this file.
 
-{application, devo, [
-	{description, "SD Erlang online Profiling and Visualisation ."},
+{application, template, [
+	{description, "A simple template containing a Cowboy webserver and websocket communication"},
 	{vsn, "1"},
 	{modules, []},
 	{registered, []},
@@ -10,6 +10,6 @@
 		stdlib,
 		cowboy
 	]},
-	{mod, {devo_app, []}},
+	{mod, {template_app, []}},
 	{env, []}
 ]}.

@@ -1,6 +1,6 @@
 %% Feel free to use, reuse and abuse the code in this file.
 
--module(devo_toppage_handler).
+-module(toppage_handler).
 
 -export([init/3]).
 -export([handle/2]).

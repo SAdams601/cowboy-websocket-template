@@ -1,7 +1,7 @@
 %% Feel free to use, reuse and abuse the code in this file.
 
 %% @private
--module(devo_sup).
+-module(template_sup).
 -behaviour(supervisor).
 
 %% API.

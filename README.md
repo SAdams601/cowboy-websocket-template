@@ -57,7 +57,7 @@ The callback module is where Cowboys router is configured and started. Copy the 
 
 You should now be ready to start your application and if you connect to `http://{YOUR_HOSTNAME}:8080` you should see this screen:
 
-![screenshot](https://raw.githubusercontent.com/fodder008/cowboy-websocket-template/master/webScreen.png)
+![screenshot](https://raw.githubusercontent.com/fodder008/cowboy-websocket-template/fc263d507b3cc923bd527e66bd7a1f155d73763e/webScreen.png)
 
 If you type into the text box and hit send Erlang should just send the message back to the client with "Erlang recieved the message: " prepended onto the sent text. If you have an Erlang console that can talk to the node running Cowboy you can send messages to the client by sending an Erlang message to the process named `ws_handler`, e.g. `ws_handler ! test` will send the atom `test` to the webpage and you should see it appear there.
 

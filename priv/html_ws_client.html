@@ -73,7 +73,6 @@
       
       function sendMessage(){
           var msgText = $('#messageText').val();
-          $('#messages').append('<li>Sending: ' + msgText + '</li>');
           websocket.send(msgText);
       };
       

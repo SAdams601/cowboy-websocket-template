@@ -1,6 +1,18 @@
 # cowboy-websocket-template
 A stripped down Cowboy webserver and template for communicating with client with websockets.
 
+### Getting Cowboy
+
+This project uses rebar (https://github.com/basho/rebar) for dependency management. If you use rebar as well you can get Cowboy by adding the entry shown below to your `rebar.config` file.
+
+```erlang
+{deps, [
+	{cowboy, ".*",
+		{git, "git://github.com/extend/cowboy.git", "1.0.x"}}
+]}.
+```
+If you don't use rebar then take note that this tutorial uses version 1.0 of Cowboy and will not work with the latest versions. For further help getting Cowboy without rebar I would suggest following 99s getting started guide found here: http://ninenines.eu/docs/en/cowboy/1.0/guide/getting_started/.
+
 ## Integration Instructions
 
 This template project is just a standard Erlang application. Much of the code contained in the `src` directory is just standard boilerplate for running an application and will be eliminated by your own application configuration.

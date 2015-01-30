@@ -78,4 +78,10 @@ You have now integrated all of the functionality provided by this project into y
 
 ## Overview of client-side code
 
+This README will not go into much detail of the client side code. There are many good tutorials on Javascript and using websockets on the client so I wont spend much time discussing that here. Instead this will just quickly go over where everything is on the client side.
+
+The root of the client code is the `priv/` directory. In this root directory is the `static` directory which is served by Cowboy's static handler; `src/toppage_handler.erl` serves the other item in the `priv` directory, `html_ws_client.html`. `html_ws_client.html` is the main webpage. Within it is all the Javascript and html to render the send and recieve from websockets page.
+
+Inside the `static` directory is a `lib` directory where the clients dependencies are stored and the css file.
+
 ## Additional Resources

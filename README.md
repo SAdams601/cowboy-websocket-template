@@ -104,6 +104,27 @@ websocket_init(_Type, Req, _Opts) ->
 Alternatively returning the shutdown tuple, `{shutdown, Req}`, will send a 404 message to the client. After the `ok` tuple is recieved by Cowboy it will immediately perform the handshake. It should be noted that *both* of the init functions are called *everytime* a new client connects.
 
 ### `websocket_handle`
+The `websocket_handle/3` function is called when Cowboy recieves a frame from the client. Frames take the form of:
+
+```erlang
+frame() = close | ping | pong | {text | binary | close | ping | pong, iodata()} | {close, close_code(), iodata()}
+```
+
+Some action can be taken at this point. 
+
+### `websocket_info`
+
+When an Erlang message is recieved by the handler's process cowboy will call `websocket_info\3`. The handler can send frames back to the client, shutdown or do nothing at this point.
+
+### Sending to the client
+
+Communicating back to the client can be done from either `websocket_info/3` or `websocket_handle/3` by returning a reply tuple. The reply tuple consists of the atom `reply` followed by either a single frame or a list of frames to be sent to the client, a `Req` object, and finally the current state.
+
+The frame takes the form mentioned in the `websocket_handle` section found above.
+
+### `websocket_terminate`
+
+Finally the `websocket_terminate` function is called to allow you to clean up the state. After this function returns the websocket connection is closed and the handler's process is stopped.
 ## Overview of client-side code
 
 This README will not go into much detail of the client side code. There are many good tutorials on Javascript and using websockets on the client so I wont spend much time discussing that here. Instead this will just quickly go over where everything is on the client side.
@@ -117,3 +138,4 @@ Here is a list of additional references or document that this was based off of. 
 
 * [The Cowboy Req 'object'](http://ninenines.eu/docs/en/cowboy/1.0/guide/req/)
 * [Cowboy websocket handler behavior](http://ninenines.eu/docs/en/cowboy/1.0/manual/cowboy_websocket_handler/)
+* [Guide to websocket handlers](http://ninenines.eu/docs/en/cowboy/1.0/guide/ws_handlers/)

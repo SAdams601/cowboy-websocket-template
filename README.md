@@ -75,13 +75,45 @@ If you type into the text box and hit send Erlang should just send the message b
 
 You have now integrated all of the functionality provided by this project into your own application. The following sections will be a more detailed discussion of the ws_handler and the client-side code.
 ## Overview of ws_handler
+There are five functions that you need to implement to support websocket communications using Cowboy.
 
+* `init/3`
+* `websocket_init/3`
+* `websocket_handle/3`
+* `websocket_info/3`
+* `websocket_terminate/3`
+
+This section will briefly cover the uses of these functions.
+
+### The init functions
+There are two init functions `init` and `websocket_init`. The `init` function always returns an upgrade tuple: 
+
+```erlang
+init({tcp, http}, _Req, _Opts) ->
+    {upgrade, protocol, cowboy_websocket}.
+```
+You can also update the `Req` object and the options by returning the longer form of the tuple: `{upgrade, protocol, cowboy_websocket, Req, Opts}.`
+  
+After recieving this tuple Cowboy immediately calls `websocket_init`. `websocket_init` is where you place much of your custom initialization code. Typically, however, this is just used to register the process and initialize the state. Returing the "`ok`" tuple.
+
+```erlang
+websocket_init(_Type, Req, _Opts) ->
+    {ok, Req, #state{}}.
+```
+
+Alternatively returning the shutdown tuple, `{shutdown, Req}`, will send a 404 message to the client. After the `ok` tuple is recieved by Cowboy it will immediately perform the handshake. It should be noted that *both* of the init functions are called *everytime* a new client connects.
+
+### `websocket_handle`
 ## Overview of client-side code
 
 This README will not go into much detail of the client side code. There are many good tutorials on Javascript and using websockets on the client so I wont spend much time discussing that here. Instead this will just quickly go over where everything is on the client side.
 
 The root of the client code is the `priv/` directory. In this root directory is the `static` directory which is served by Cowboy's static handler; `src/toppage_handler.erl` serves the other item in the `priv` directory, `html_ws_client.html`. `html_ws_client.html` is the main webpage. Within it is all the Javascript and html to render the send and recieve from websockets page.
 
-Inside the `static` directory is a `lib` directory where the clients dependencies are stored and the css file.
+Inside the `static` directory is a `lib` directory where the clients dependencies are stored and the css file. 
 
 ## Additional Resources
+Here is a list of additional references or document that this was based off of. If anything said here conflicts with something from the links in this list then assume the link is correct.
+
+* [The Cowboy Req 'object'](http://ninenines.eu/docs/en/cowboy/1.0/guide/req/)
+* [Cowboy websocket handler behavior](http://ninenines.eu/docs/en/cowboy/1.0/manual/cowboy_websocket_handler/)
